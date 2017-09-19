@@ -4,22 +4,16 @@ var wdOpts = { desiredCapabilities: { browserName: 'phantomjs' } }
 
 var args = require('./auth-info.json');
 
-var LOADING_TIMEOUT = 3000
-
-const script = async () => {
-
-};
+var LOADING_TIMEOUT = 2000
 
 phantomjs.run('--webdriver=4444').then(async program => {
     console.log('Starting run');
 
-    let browser;
-    browser = await webdriverio.remote(wdOpts).init();
-    console.log(browser);
-    const how = await browser.url('https://galaxy.meteor.com/app/new.skoolerstutoring.com').then(() => console.log('how'))
-    console.log('meow', how);
-    await browser.pause(1000);
-    console.log('meow');
+    // For reason using await on this doesn't work, so we just pause (ugh)
+    const browser = webdriverio.remote(wdOpts)
+        .init()
+        .url('https://galaxy.meteor.com/app/new.skoolerstutoring.com')
+    await browser.pause(LOADING_TIMEOUT);
 
     // .reload()
     // .setValue('[name="username"]', args.galaxyUsername)
@@ -29,16 +23,7 @@ phantomjs.run('--webdriver=4444').then(async program => {
     // The below doesn't work since Galaxy sets opacity to 0 for loaded spinner. Need
     // custom function to handle
     // .waitForVisible('div.spinner-wheel', LOADING_TIMEOUT, true)
-    // .getText("div.cardinal-name=Connections").then(text => {
-    //     console.log(text);
-    // })
-    // .getTitle()
-    // .then(title => {
-    //     console.log(title)
-    //     program.kill()
-    // })
-    // .catch(err => {
-    //     console.error(err)
-    //     program.kill()
-    // })
+    const text = await browser.getText("div.cardinal-name=Connections");
+
+    console.log('Title:', await browser.getTitle());
 })

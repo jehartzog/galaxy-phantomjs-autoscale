@@ -21,7 +21,5 @@
     "phantomjs-prebuilt": "^2.1.15",
     "webdriverio": "^4.8.0"
   },
-  "devDependencies": {
-    "babel-preset-env": "^1.6.0"
-  }
+  "devDependencies": {}
 }
