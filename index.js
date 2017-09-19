@@ -19,7 +19,7 @@ phantomjs.run('--webdriver=4444').then(async program => {
         // For reason using await on this doesn't work, so we just pause (ugh)
         browser = webdriverio.remote(wdOpts)
             .init()
-            .url('https://galaxy.meteor.com/app/new.skoolerstutoring.com');
+            .url(`https://galaxy.meteor.com/app/${args.appName}`);
 
         await browser.pause(5000);
 
