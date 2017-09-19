@@ -1,6 +1,10 @@
+// Created by J. Eric Hartzog on 7/19/17
+
 var phantomjs = require('phantomjs-prebuilt')
 var webdriverio = require('webdriverio')
 var wdOpts = { desiredCapabilities: { browserName: 'phantomjs' } }
+
+var scrapeInfo = require('./scrape-info');
 
 var args = require('./auth-info.json');
 
@@ -37,18 +41,17 @@ phantomjs.run('--webdriver=4444').then(async program => {
         //     await browser.pause(3000);
         // }
 
-        let sections = await browser.elements('div.section-cardinal.quarter');
+        const info = await scrapeInfo(browser);
 
-        const connectionsId = sections.value[0].ELEMENT;
-        const connectionsElm = await browser.elementIdElement(connectionsId, '.cardinal-numeral');
-        const connections = await browser.elementIdText(connectionsElm.value.ELEMENT);
-        console.log(Number.parseInt(connections.value, 10));
+        console.log(info);
 
         // await browser.click('button.cardinal-action.increment');
         // await browser.click('button.cardinal-action.decrement');
 
         console.log('Title:', await browser.getTitle());
+
     } catch (err) {
         console.error(err);
     }
+    program.kill();
 })
