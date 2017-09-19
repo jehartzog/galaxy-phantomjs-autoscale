@@ -24,10 +24,13 @@ phantomjs.run('--webdriver=4444').then(async program => {
 
         console.log('Browser loaded');
 
-        // .reload()
-        // await browser.setValue('[name="username"]', args.galaxyUsername)
-        // .setValue('[name="password"]', args.galaxyPassword)
-        // .click('form button[type="submit"]')
+        try {
+            await browser.setValue('[name="username"]', args.galaxyUsername)
+            await browser.setValue('[name="password"]', args.galaxyPassword)
+            await browser.click('form button[type="submit"]')
+        } catch (err) {
+            console.log('Error trying to log in, most likely already logged in');
+        }
 
         // Wait till no more spinners, doesn't yet work
         // const loading = async () => {
