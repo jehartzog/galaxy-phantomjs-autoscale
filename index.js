@@ -10,17 +10,20 @@ const scalingLogic = require('./scaling-logic');
 const args = require('./auth-info.json');
 
 phantomjs.run('--webdriver=4444').then(async program => {
-    console.log('Starting run');
+    console.log(`${(new Date()).toString()} - Starting run`);
+    console.time('run');
+
+    let browser;
 
     try {
         // For reason using await on this doesn't work, so we just pause (ugh)
-        const browser = webdriverio.remote(wdOpts)
+        browser = webdriverio.remote(wdOpts)
             .init()
             .url('https://galaxy.meteor.com/app/new.skoolerstutoring.com');
 
         await browser.pause(5000);
 
-        console.log('Browser loaded');
+        // console.log('Browser loaded');
 
         await browser.executeAsync(function (done) {
             eval("window.localStorage.clear()");
@@ -29,7 +32,7 @@ phantomjs.run('--webdriver=4444').then(async program => {
             }, 5000);
         });
 
-        console.log('Cleared local storage');
+        // console.log('Cleared local storage');
 
         try {
             await browser.setValue('[name="username"]', args.galaxyUsername)
@@ -43,15 +46,27 @@ phantomjs.run('--webdriver=4444').then(async program => {
 
         // Wait till no more spinners
         const loading = async () => {
-            const spinners = await browser.getCssProperty('div.loading-spinner', 'opacity');
-            return spinners.reduce((acc, cur) => {
-                return acc || cur.value !== 0;
-            }, false);
+            try {
+                let spinners = await browser.getCssProperty('div.loading-spinner', 'opacity');
+
+                // If we only get 1 result, place it in array
+                if (!Array.isArray(spinners)) {
+                    spinners = [spinners];
+                }
+
+                return spinners.reduce((acc, cur) => {
+                    return acc || cur.value !== 0;
+                }, false);
+            } catch (err) {
+                // If we can't find the spinners, then the page is still loading
+                console.warn(err);
+                return true;
+            }
         };
 
         while (await loading()) {
             console.log('Still loading, pausing...');
-            await browser.pause(3000);
+            await browser.pause(5000);
         }
 
         const info = await scrapeInfo(browser);
@@ -81,8 +96,14 @@ phantomjs.run('--webdriver=4444').then(async program => {
         }
     } catch (err) {
         console.error(err);
+
+        try {
+            browser.saveScreenshot(`./error - ${(new Date()).toString()}.png`);
+        } catch (imgError) {
+            console.error(imgError);
+        }
     }
 
-    console.log('Run complete');
+    console.timeEnd('run');
     program.kill();
 })
