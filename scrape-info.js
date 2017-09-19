@@ -14,7 +14,13 @@ const scrapeInfo = async browser => {
         const sectionId = sections.value[3].ELEMENT;
         const numberElm = await browser.elementIdElement(sectionId, 'input');
         const numberText = await browser.elementIdAttribute(numberElm.value.ELEMENT, 'value');
-        return Number.parseInt(numberText.value, 10);
+        const number = Number.parseInt(numberText.value, 10);
+
+        if (Number.isNaN(number)) {
+            throw new Error('Found NaN while scraping, giving up attempt');
+        }
+
+        return number;
     }
 
     return {
