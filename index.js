@@ -37,10 +37,12 @@ phantomjs.run('--webdriver=4444').then(async program => {
         //     await browser.pause(3000);
         // }
 
-        let count = null;
-        const text = await browser.element('div.cardinal-name=Connections');
+        let sections = await browser.elements('div.section-cardinal.quarter');
 
-        console.log(text);
+        const connectionsId = sections.value[0].ELEMENT;
+        const connectionsElm = await browser.elementIdElement(connectionsId, '.cardinal-numeral');
+        const connections = await browser.elementIdText(connectionsElm.value.ELEMENT);
+        console.log(Number.parseInt(connections.value, 10));
 
         // await browser.click('button.cardinal-action.increment');
         // await browser.click('button.cardinal-action.decrement');
