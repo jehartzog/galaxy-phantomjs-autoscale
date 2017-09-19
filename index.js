@@ -9,21 +9,44 @@ var LOADING_TIMEOUT = 2000
 phantomjs.run('--webdriver=4444').then(async program => {
     console.log('Starting run');
 
-    // For reason using await on this doesn't work, so we just pause (ugh)
-    const browser = webdriverio.remote(wdOpts)
-        .init()
-        .url('https://galaxy.meteor.com/app/new.skoolerstutoring.com')
-    await browser.pause(LOADING_TIMEOUT);
+    try {
+        // For reason using await on this doesn't work, so we just pause (ugh)
+        const browser = webdriverio.remote(wdOpts)
+            .init()
+            .url('https://galaxy.meteor.com/app/new.skoolerstutoring.com');
+        await browser.pause(LOADING_TIMEOUT);
 
-    // .reload()
-    // .setValue('[name="username"]', args.galaxyUsername)
-    // .setValue('[name="password"]', args.galaxyPassword)
-    // .click('form button[type="submit"]')
-    // .pause(LOADING_TIMEOUT)
-    // The below doesn't work since Galaxy sets opacity to 0 for loaded spinner. Need
-    // custom function to handle
-    // .waitForVisible('div.spinner-wheel', LOADING_TIMEOUT, true)
-    const text = await browser.getText("div.cardinal-name=Connections");
+        console.log('Browser loaded');
 
-    console.log('Title:', await browser.getTitle());
+        // .reload()
+        // await browser.setValue('[name="username"]', args.galaxyUsername)
+        // .setValue('[name="password"]', args.galaxyPassword)
+        // .click('form button[type="submit"]')
+
+        // Wait till no more spinners, doesn't yet work
+        // const loading = async () => {
+        //     const spinners = await browser.getCssProperty('div.spinner-wheel', 'opacity');
+        //     console.log(spinners);
+        //     return spinners.reduce((acc, cur) => {
+        //         return acc || cur.value !== 0;
+        //     }, false);
+        // };
+
+        // while (await loading()) {
+        //     console.log('Still loading, pausing...');
+        //     await browser.pause(3000);
+        // }
+
+        let count = null;
+        const text = await browser.element('div.cardinal-name=Connections');
+
+        console.log(text);
+
+        // await browser.click('button.cardinal-action.increment');
+        // await browser.click('button.cardinal-action.decrement');
+
+        console.log('Title:', await browser.getTitle());
+    } catch (err) {
+        console.error(err);
+    }
 })
