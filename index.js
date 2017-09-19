@@ -1,14 +1,16 @@
 // Created by J. Eric Hartzog on 7/19/17
 
-var phantomjs = require('phantomjs-prebuilt')
-var webdriverio = require('webdriverio')
-var wdOpts = { desiredCapabilities: { browserName: 'phantomjs' } }
+const phantomjs = require('phantomjs-prebuilt')
+const webdriverio = require('webdriverio')
+const wdOpts = { desiredCapabilities: { browserName: 'phantomjs' } }
 
-var scrapeInfo = require('./scrape-info');
+const scrapeInfo = require('./scrape-info');
+const scalingLogic = require('./scaling-logic');
 
-var args = require('./auth-info.json');
+const args = require('./auth-info.json');
 
-var LOADING_TIMEOUT = 2000
+const LOADING_TIMEOUT_MS = 2000
+const SCALING_CLICK_TIMEOUT_MS = 3000;
 
 phantomjs.run('--webdriver=4444').then(async program => {
     console.log('Starting run');
@@ -18,7 +20,7 @@ phantomjs.run('--webdriver=4444').then(async program => {
         const browser = webdriverio.remote(wdOpts)
             .init()
             .url('https://galaxy.meteor.com/app/new.skoolerstutoring.com');
-        await browser.pause(LOADING_TIMEOUT);
+        await browser.pause(LOADING_TIMEOUT_MS);
 
         console.log('Browser loaded');
 
@@ -43,15 +45,33 @@ phantomjs.run('--webdriver=4444').then(async program => {
 
         const info = await scrapeInfo(browser);
 
-        console.log(info);
+        console.log('Current stats:', info);
 
-        // await browser.click('button.cardinal-action.increment');
-        // await browser.click('button.cardinal-action.decrement');
+        const scaleAction = scalingLogic(info);
 
-        console.log('Title:', await browser.getTitle());
+        if (scaleAction > 0) {
+            await browser.executeAsync(function (done) {
+                eval("$('button.cardinal-action.increment').click()");
+                setTimeout(function () {
+                    done();
+                }, SCALING_CLICK_TIMEOUT_MS);
+            });
+            console.log('Completed scaling up');
+        }
 
+        if (scaleAction < 0) {
+            await browser.executeAsync(function (done) {
+                eval("$('button.cardinal-action.decrement').click()");
+                setTimeout(function () {
+                    done();
+                }, SCALING_CLICK_TIMEOUT_MS);
+            });
+            console.log('Completed scaling down');
+        }
     } catch (err) {
         console.error(err);
     }
+
+    console.log('Run complete');
     program.kill();
 })
